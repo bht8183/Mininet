@@ -1,7 +1,3 @@
-# Mininet L3 topology for HW5
-# Routers: rA, rB, rC
-# Each router has 2 hosts on its LAN plus one interface on the inter-router /24 mesh
-
 from mininet.net import Mininet
 from mininet.node import Node, OVSSwitch
 from mininet.cli import CLI
@@ -9,17 +5,20 @@ from mininet.link import TCLink
 from mininet.log import setLogLevel
 
 class Router(Node):
-    "A Node with IP forwarding enabled."
+    """A Node with IP forwarding enabled (acts as a simple router)."""
 
     def config(self, **params):
+        # Ensure parent class configuration is applied first
         super().config(**params)
-        self.cmd('sysctl -w net.ipv4.ip_forward=1')
+        self.cmd('sysctl -w net.ipv4.ip_forward=1') # Enable IPv4 forwarding
 
     def terminate(self):
+        # Disable IP forwarding when shutting down
         self.cmd('sysctl -w net.ipv4.ip_forward=0')
         super().terminate()
 
 def build_topo():
+    """Create a three-LAN topology with three routers interconnected on a /24 backbone."""
     print("*** Creating network")
     net = Mininet(link=TCLink)
 
@@ -47,6 +46,7 @@ def build_topo():
     net.addLink(s2, rB, intfName2='rB-eth1')
     net.addLink(s3, rC, intfName2='rC-eth1')
 
+    # Connect hosts to their respective LAN switches
     net.addLink(s1, hA1)
     net.addLink(s1, hA2)
     net.addLink(s2, hB1)
@@ -61,23 +61,23 @@ def build_topo():
     print("*** Building network")
     net.build()
 
-    # get your routers
+    # get routers
     rA, rB, rC = net.get('rA','rB','rC')
 
-    # 1) Assign LAN‐side IPs (your subnets from Task 1)
+    # 1) Assign LAN‐side IPs
     rA.setIP('20.10.172.129/26', intf='rA-eth1')
     rB.setIP('20.10.172.1/25',  intf='rB-eth1')
     rC.setIP('20.10.172.193/27',intf='rC-eth1')
 
-    # 2) Assign backbone IPs as you already had
+    # 2) Assign backbone IPs
     rA.setIP('20.10.100.1/24', intf='rA-eth2')
     rB.setIP('20.10.100.2/24', intf='rB-eth2')
     rC.setIP('20.10.100.3/24', intf='rC-eth2')
 
-    # 3) Now actually start the network (so switches come up)
+    # 3) ehh
     net.start()
 
-    # 4) Test intra-LAN reachability
+    # 4) Test 
     print("\n=== Testing intra-LAN connectivity only ===")
     net.ping([ net.get('hA1'), net.get('hA2') ])
     net.ping([ net.get('hB1'), net.get('hB2') ])
@@ -85,7 +85,7 @@ def build_topo():
 
     CLI(net)
     net.stop()
-    
+
 if __name__ == '__main__':
     setLogLevel('info')
     build_topo()
